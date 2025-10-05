@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Interactive Fixed Navigation Menu</title>
+  <style>
+    :root{
+      --nav-height: 68px;
+      --nav-bg: rgba(255,255,255,0.85);
+      --nav-bg-scrolled: rgba(15,23,42,0.95);
+      --nav-text: #0f172a;
+      --nav-text-scrolled: #fff;
+      --accent: #0ea5a4; /* default accent */
+      --transition: 250ms cubic-bezier(.2,.9,.3,1);
+      --glass-blur: 6px;
+    }
+
+    /* Basic page reset */
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:var(--nav-text);background:linear-gradient(180deg,#f8fafc,#eef2ff);}
+
+    /* Fixed navigation */
+    nav.site-nav{
+      position:fixed;
+      top:0;left:0;right:0;
+      height:var(--nav-height);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 1.25rem;
+      background:var(--nav-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow:0 6px 20px rgba(8,15,25,0.06);
+      transition:background var(--transition), color var(--transition), height var(--transition), box-shadow var(--transition);
+      z-index:9999;
+    }
+
+    /* Scrolled state */
+    nav.site-nav.scrolled{
+      background:var(--nav-bg-scrolled);
+      color:var(--nav-text-scrolled);
+      box-shadow:0 8px 30px rgba(2,6,23,0.45);
+      height:60px;
+    }
+
+    /* Logo / brand */
+    .brand{
+      display:flex;align-items:center;gap:.6rem;
+      font-weight:600;letter-spacing:0.2px;color:inherit;text-decoration:none;
+    }
+    .brand .logo{
+      width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px;box-shadow:0 4px 12px rgba(12,18,30,0.18);
+    }
+
+    /* Menu */
+    .menu{
+      display:flex;gap:1rem;align-items:center;list-style:none;margin:0;padding:0;
+    }
+    .menu a{
+      text-decoration:none;padding:.55rem .7rem;border-radius:8px;display:inline-block;transition:transform var(--transition), background var(--transition), color var(--transition), box-shadow var(--transition);color:inherit;font-weight:500;
+    }
+
+    /* Hover effect (pure CSS) */
+    .menu a:hover, .menu a:focus{
+      transform:translateY(-3px);
+      box-shadow:0 8px 20px rgba(2,6,23,0.08);
+    }
+
+    /* Menu item colors are driven by --item-color custom property provided inline. Uses an inset underline and subtle tint */
+    .menu a[data-color]{
+      --item-color: transparent;
+    }
+    .menu a[data-color]:hover{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    }
+
+    /* Small pill that shows accent color on focus/active */
+    .menu a .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:8px;vertical-align:middle;opacity:0;transform:translateY(2px);transition:opacity var(--transition) ease, transform var(--transition) ease;}
+    .menu a:hover .dot, .menu a:focus .dot{opacity:1;transform:translateY(0);}
+
+    /* Mobile: collapse into hamburger */
+    .hamburger{display:none;background:none;border:0;padding:.4rem;border-radius:8px;cursor:pointer}
+    .hamburger .bar{display:block;width:22px;height:2px;background:currentColor;margin:4px 0;border-radius:2px;transition:transform var(--transition), opacity var(--transition)}
+
+    /* Responsive */
+    @media (max-width:820px){
+      .menu{position:fixed;top:var(--nav-height);right:0;background:var(--nav-bg);backdrop-filter:blur(var(--glass-blur));flex-direction:column;padding:1rem;border-radius:12px;margin:0.5rem;display:none;min-width:160px;box-shadow:0 12px 40px rgba(4,8,22,0.18)}
+      .menu.show{display:flex}
+      .hamburger{display:inline-block}
+    }
+
+    /* Utility to invert colors when nav has scrolled */
+    nav.site-nav.scrolled .menu a{color:var(--nav-text-scrolled)}
+    nav.site-nav.scrolled .brand{color:var(--nav-text-scrolled)}
+
+    /* Content demo area */
+    main{padding-top:calc(var(--nav-height) + 1rem);max-width:1000px;margin:0 auto;padding-left:1rem;padding-right:1rem}
+    section.card{background:white;border-radius:12px;padding:2rem;margin:1.25rem 0;box-shadow:0 10px 30px rgba(8,15,25,0.06)}
+
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav" id="siteNav" aria-label="Main navigation">
+    <a href="#home" class="brand" id="brand">
+      <span class="logo" aria-hidden="true">W</span>
+      <span class="brand-name">WasteNav</span>
+    </a>
+
+    <button class="hamburger" id="hamburger" aria-expanded="false" aria-controls="primaryMenu" aria-label="Toggle menu">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
+
+    <ul class="menu" id="primaryMenu">
+      <!-- data-color is used by JavaScript to change the nav accent while hovering -->
+      <li><a href="#home" data-color="#0ea5a4">Home <span class="dot" style="background:#0ea5a4"></span></a></li>
+      <li><a href="#about" data-color="#60a5fa">About <span class="dot" style="background:#60a5fa"></span></a></li>
+      <li><a href="#services" data-color="#f97316">Services <span class="dot" style="background:#f97316"></span></a></li>
+      <li><a href="#portfolio" data-color="#a78bfa">Portfolio <span class="dot" style="background:#a78bfa"></span></a></li>
+      <li><a href="#contact" data-color="#ef4444">Contact <span class="dot" style="background:#ef4444"></span></a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <!-- Demo content so the scroll effect is visible -->
+    <section class="card" id="home">
+      <h1>Interactive Fixed Navigation</h1>
+      <p>This demo page shows a navigation bar that reacts to scroll and hover. Scroll down to see the nav "scrolled" style. Hover a menu item to temporarily tint the navigation with the menu's accent color.</p>
+    </section>
+
+    <section class="card" id="about">
+      <h2>About</h2>
+      <p>Accessible, responsive, and easy to customize. Colors are driven by CSS variables and by <code>data-color</code> attributes on the links.</p>
+    </section>
+
+    <section class="card" id="services">
+      <h2>Services</h2>
+      <p>Use this pattern to keep a consistent header across pages — the nav is fixed and will remain at the top while you scroll.</p>
+    </section>
+
+    <section class="card" id="portfolio">
+      <h2>Portfolio</h2>
+      <p>Try keyboard navigation: Tab through links and press Enter. The hover/focus visual cues will appear for keyboard users as well.</p>
+    </section>
+
+    <section class="card" id="contact">
+      <h2>Contact</h2>
+      <p>Change the accent colors by editing the <code>data-color</code> attributes on each anchor or modify the CSS variables in <code>:root</code>.</p>
+    </section>
+
+    <!-- filler content to create a longer page -->
+    <section class="card">
+      <h2>More content</h2>
+      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Asperiores, tempore.</p>
+      <p style="height:800px"></p>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      const nav = document.getElementById('siteNav');
+      const menu = document.getElementById('primaryMenu');
+      const hamburger = document.getElementById('hamburger');
+      const links = Array.from(menu.querySelectorAll('a'));
+
+      // --- Scroll behavior: toggle "scrolled" class when page is scrolled ---
+      const SCROLL_THRESHOLD = 48; // px
+      function onScroll(){
+        if(window.scrollY > SCROLL_THRESHOLD){
+          nav.classList.add('scrolled');
+        } else {
+          nav.classList.remove('scrolled');
+        }
+      }
+      window.addEventListener('scroll', onScroll, {passive:true});
+      onScroll(); // run on load in case page starts scrolled
+
+      // --- Hover behavior: change nav tint to the hovered link's color ---
+      // Each link should have a data-color attribute (hex, rgb, etc.).
+      let originalBg = getComputedStyle(nav).backgroundColor;
+      let originalText = getComputedStyle(nav).color;
+
+      function setNavTheme(color){
+        // We'll set a subtle tinted background using CSS linear-gradient and set text color for contrast.
+        nav.style.transition = 'background 220ms ease, color 220ms ease';
+        nav.style.background = `linear-gradient(180deg, ${hexToRgba(color,0.14)}, ${hexToRgba(color,0.06)}), var(--nav-bg)`;
+        // if nav is scrolled, prefer light text; otherwise compute contrast
+        if(nav.classList.contains('scrolled')){
+          nav.style.color = 'var(--nav-text-scrolled)';
+        } else {
+          nav.style.color = getContrastingTextColor(color);
+        }
+      }
+
+      function resetNavTheme(){
+        nav.style.background = '';
+        nav.style.color = '';
+      }
+
+      links.forEach(link =>{
+        const color = link.getAttribute('data-color');
+        if(!color) return;
+        link.addEventListener('mouseenter', ()=> setNavTheme(color));
+        link.addEventListener('focus', ()=> setNavTheme(color)); // keyboard users
+        link.addEventListener('mouseleave', ()=> resetNavTheme());
+        link.addEventListener('blur', ()=> resetNavTheme());
+      });
+
+      // --- Hamburger toggle for small screens ---
+      hamburger.addEventListener('click', ()=>{
+        const expanded = hamburger.getAttribute('aria-expanded') === 'true';
+        hamburger.setAttribute('aria-expanded', String(!expanded));
+        menu.classList.toggle('show');
+      });
+
+      // Close menu when a link is clicked (mobile friendly)
+      links.forEach(a => a.addEventListener('click', ()=>{
+        if(menu.classList.contains('show')){
+          menu.classList.remove('show');
+          hamburger.setAttribute('aria-expanded','false');
+        }
+      }));
+
+      // --- Utility: convert hex to rgba ---
+      function hexToRgba(hex, alpha){
+        // Accepts #rrggbb or rgb(…) or named colors - try to resolve using a temporary element
+        hex = hex.trim();
+        if(hex.startsWith('rgb')){
+          // rgb or rgba already
+          const nums = hex.match(/\d+(\.\d+)?/g).slice(0,3);
+          return `rgba(${nums[0]}, ${nums[1]}, ${nums[2]}, ${alpha})`;
+        }
+        // If it's hex
+        if(hex.startsWith('#')){
+          let c = hex.substring(1);
+          if(c.length === 3){ c = c.split('').map(ch=>ch+ch).join(''); }
+          const int = parseInt(c,16);
+          const r = (int >> 16) & 255;
+          const g = (int >> 8) & 255;
+          const b = int & 255;
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+        // fallback: use a temp element to compute
+        const temp = document.createElement('div');
+        temp.style.color = hex;
+        document.body.appendChild(temp);
+        const cs = getComputedStyle(temp).color;
+        document.body.removeChild(temp);
+        const nums = cs.match(/\d+/g);
+        if(nums) return `rgba(${nums[0]}, ${nums[1]}, ${nums[2]}, ${alpha})`;
+        return `rgba(0,0,0,${alpha})`;
+      }
+
+      // Utility: returns either black or white depending on which has better contrast against the given hex color
+      function getContrastingTextColor(hexColor){
+        // convert to rgb
+        let r,g,b;
+        if(hexColor.startsWith('#')){
+          let c = hexColor.substring(1);
+          if(c.length===3) c = c.split('').map(ch=>ch+ch).join('');
+          const num = parseInt(c,16);
+          r = (num >> 16) & 255;
+          g = (num >> 8) & 255;
+          b = num & 255;
+        } else if(hexColor.startsWith('rgb')){
+          const nums = hexColor.match(/\d+/g);
+          r = +nums[0]; g = +nums[1]; b = +nums[2];
+        } else {
+          // fallback: compute using computed style
+          const temp = document.createElement('div');
+          temp.style.color = hexColor;
+          document.body.appendChild(temp);
+          const cs = getComputedStyle(temp).color;
+          document.body.removeChild(temp);
+          const nums = cs.match(/\d+/g) || [0,0,0];
+          r = +nums[0]; g = +nums[1]; b = +nums[2];
+        }
+        // luminance formula
+        const luminance = (0.299*r + 0.587*g + 0.114*b)/255;
+        return luminance > 0.55 ? '#0f172a' : '#ffffff';
+      }
+
+      // Optional: close popover when clicking outside on small screens
+      document.addEventListener('click', (e)=>{
+        if(window.innerWidth <= 820){
+          if(!menu.contains(e.target) && !hamburger.contains(e.target)){
+            menu.classList.remove('show');
+            hamburger.setAttribute('aria-expanded','false');
+          }
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
